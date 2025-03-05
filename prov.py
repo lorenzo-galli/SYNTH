@@ -2,13 +2,15 @@ import pygame
 import synth
 import cevent
 import time
+import random
 
 # Definiamo alcune costanti per l'interfaccia grafica
 WIDTH, HEIGHT = 1280, 800
 BUTTON_RADIUS = 20
 FONT_SIZE1 = 30
 FONT_SIZE2 = 15
-
+FALLING_SPEED = 2      # Pixels per frame
+SPAWN_INTERVAL = 2000  # Milliseconds between falling notes
 
 class Gioco(cevent.CEvent):
 
@@ -67,6 +69,11 @@ class Gioco(cevent.CEvent):
         # Dizionario per la gestione delle scie
         self.trail_data = {} 
 
+        # New attributes for falling notes and scoring
+        self.falling_notes = []  # List of falling note dictionaries
+        self.last_spawn_time = 0
+        self.score = 0
+
     def on_init(self):
         pygame.mixer.init(frequency=22050, size=-16, channels=1)
         pygame.init()  # inizializza Pygame
@@ -84,11 +91,35 @@ class Gioco(cevent.CEvent):
     def on_cleanup(self):
         pygame.quit()
 
+    def spawn_falling_note(self):
+        # Randomly select one of the key lists
+        key_list = random.choice([self.white_keys, self.black_keys, self.white_keys_plus, self.black_keys_plus])
+        x, y, w, h, note = random.choice(key_list)
+        # Set octave and color based on key group
+        if key_list in [self.white_keys, self.black_keys]:
+            note_full = f'{note}-{self.ottava}'
+            color = (0, 200, 200) if key_list == self.white_keys else (0, 200, 140)
+        else:
+            note_full = f'{note}-{self.ottava + 1}'
+            color = (0, 200, 200) if key_list == self.white_keys_plus else (0, 200, 140)
+        falling_note = {
+            "note": note_full,
+            "center_x": x + w // 2,
+            "y": -20,  # Start above the screen
+            "color": color
+        }
+        self.falling_notes.append(falling_note)
+
+    def update_falling_notes(self):
+        # Update falling notes position; remove them if they go off screen.
+        for note in self.falling_notes[:]:
+            note["y"] += FALLING_SPEED
+            if note["y"] > HEIGHT:
+                self.falling_notes.remove(note)
+
     def on_event(self, event):
         if event.type == pygame.QUIT:
             self.running = False
-
-
 
         # Gestire gli eventi della tastiera
         if event.type == pygame.KEYDOWN:
@@ -167,6 +198,13 @@ class Gioco(cevent.CEvent):
                 for x, y, w, h, note in self.black_keys_plus:
                     if f'{note}-{self.ottava + 1}' == note_played:
                         self.trail_data[note_played] = {"x": x, "y": 600, "color": (0, 200, 140)}  # Colore e posizione iniziale
+
+                # --- Falling note hit detection ---
+                # Check if any falling note of matching type is within the "hit zone" (e.g., 550-650)
+                for falling in self.falling_notes[:]:
+                    if falling["note"] == note_played and 550 <= falling["y"] <= 650:
+                        self.falling_notes.remove(falling)
+                        self.score += 10  # Increase score for a successful hit
 
         # Gestire il rilascio del tasto
         if event.type == pygame.KEYUP:
@@ -420,6 +458,13 @@ class Gioco(cevent.CEvent):
             pygame.draw.line(self.schermata, data["color"], (data["x"] + 25, data["y"] - 100), (data["x"] + 25, 600), 3)
             data["y"] -= 1  # Sposta la scia verso l'alto
 
+        # Disegna le falling notes
+        for falling in self.falling_notes:
+            pygame.draw.circle(self.schermata, falling["color"], (falling["center_x"], int(falling["y"])), 15)
+
+        # Mostra il punteggio
+        score_text = self.font1.render(f"Score: {self.score}", True, (0, 0, 0))
+        self.schermata.blit(score_text, (WIDTH - score_text.get_width() - 20, 20))
         
         # Mostra tutto sulla finestra
         pygame.display.flip()
@@ -428,9 +473,16 @@ class Gioco(cevent.CEvent):
         self.on_init()
 
         while self.running:
+            current_time = pygame.time.get_ticks()
+            # Spawn a falling note periodically
+            if current_time - self.last_spawn_time >= SPAWN_INTERVAL:
+                self.last_spawn_time = current_time
+                self.spawn_falling_note()
+
             for event in pygame.event.get():
                 self.on_event(event)
 
+            self.update_falling_notes()
             # Disegnare l'interfaccia
             self.draw()
 
