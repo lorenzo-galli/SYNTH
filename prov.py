@@ -9,6 +9,7 @@ BUTTON_RADIUS = 20
 FONT_SIZE1 = 30
 FONT_SIZE2 = 15
 
+
 class Gioco(cevent.CEvent):
 
     def __init__(self):
@@ -87,8 +88,12 @@ class Gioco(cevent.CEvent):
         if event.type == pygame.QUIT:
             self.running = False
 
+
+
+        # Gestire gli eventi della tastiera
         if event.type == pygame.KEYDOWN:
             # Cambio ottava
+
             if event.key == pygame.K_x:
                 if self.ottava < 7:
                     self.ottava += 1
@@ -130,6 +135,16 @@ class Gioco(cevent.CEvent):
                 note_played = f'Re-{self.ottava + 1}'
             elif event.key == pygame.K_p:
                 note_played = f'Re#-{self.ottava + 1}'
+            elif event.key == pygame.K_v:
+                note_played = f'Mi-{self.ottava + 1}'
+            elif event.key == pygame.K_b:
+                note_played = f'Fa-{self.ottava + 1}'
+            elif event.key == pygame.K_n:    
+                note_played = f'Sol-{self.ottava + 1}'  
+            elif event.key == pygame.K_m:
+                note_played = f'La-{self.ottava + 1}'
+            elif event.key == pygame.K_COMMA:
+                note_played = f'Si-{self.ottava + 1}'
 
             # Se è stata premuta una nota, riproducila e illumina il tasto
             if note_played:
@@ -155,6 +170,9 @@ class Gioco(cevent.CEvent):
 
         # Gestire il rilascio del tasto
         if event.type == pygame.KEYUP:
+            note_played = None
+
+            # Riproduzione delle note in base all'ottava e illuminazione dei tasti
             note_played = None
             if event.key == pygame.K_a:
                 note_played = f'Do-{self.ottava}'
@@ -188,15 +206,25 @@ class Gioco(cevent.CEvent):
                 note_played = f'Re-{self.ottava + 1}'
             elif event.key == pygame.K_p:
                 note_played = f'Re#-{self.ottava + 1}'
+            elif event.key == pygame.K_v:
+                note_played = f'Mi-{self.ottava + 1}'
+            elif event.key == pygame.K_b:
+                note_played = f'Fa-{self.ottava + 1}'
+            elif event.key == pygame.K_n:    
+                note_played = f'Sol-{self.ottava + 1}'  
+            elif event.key == pygame.K_m:
+                note_played = f'La-{self.ottava + 1}'
+            elif event.key == pygame.K_COMMA:
+                note_played = f'Si-{self.ottava + 1}'
 
             # Se il tasto è stato rilasciato, rimuovi l'illuminazione
-            if note_played and note_played in self.keydown_event:
+            if note_played in self.keydown_event:
                 self.keydown_event.remove(note_played)
-
-            if note_played:
-                self.keydown_event.discard(note_played)
                 del self.trail_data[note_played]  # Rimuovi la scia quando il tasto è rilasciato
 
+
+
+        # Gestire gli eventi del mouse
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
 
@@ -209,6 +237,7 @@ class Gioco(cevent.CEvent):
                     synth.play(note_played)
                     self.illuminated_keys[note_played] = pygame.time.get_ticks()
                     self.keydown_event.add(note_played)
+                    self.trail_data[note_played] = {"x": x, "y": 600, "color": (0, 200, 140)}  # Colore e posizione iniziale
                     return  # Esce dalla funzione se un tasto è stato cliccato
             
             # Verifica se è stato cliccato un tasto
@@ -218,6 +247,7 @@ class Gioco(cevent.CEvent):
                     synth.play(note_played)
                     self.illuminated_keys[note_played] = pygame.time.get_ticks()
                     self.keydown_event.add(note_played)
+                    self.trail_data[note_played] = {"x": x, "y": 600, "color": (0, 200, 140)}  # Colore e posizione iniziale
                     return  # Esce dalla funzione se un tasto è stato cliccato
                 
             # Verifica se è stato cliccato un tasto
@@ -228,6 +258,7 @@ class Gioco(cevent.CEvent):
                     synth.play(note_played)
                     self.illuminated_keys[note_played] = pygame.time.get_ticks()
                     self.keydown_event.add(note_played)
+                    self.trail_data[note_played] = {"x": x, "y": 600, "color": (0, 200, 200)}  # Colore e posizione iniziale
                     return  # Esce dalla funzione se un tasto è stato cliccato
             
             # Verifica se è stato cliccato un tasto
@@ -238,6 +269,7 @@ class Gioco(cevent.CEvent):
                     synth.play(note_played)
                     self.illuminated_keys[note_played] = pygame.time.get_ticks()
                     self.keydown_event.add(note_played)
+                    self.trail_data[note_played] = {"x": x, "y": 600, "color": (0, 200, 200)}  # Colore e posizione iniziale
                     return  # Esce dalla funzione se un tasto è stato cliccato
 
         if event.type == pygame.MOUSEBUTTONUP:
@@ -251,6 +283,7 @@ class Gioco(cevent.CEvent):
                     note_played = f'{note}-{self.ottava}'
                     if note_played in self.keydown_event:
                         self.keydown_event.remove(note_played)  # Rimuovi l'illuminazione al rilascio del mouse
+                        del self.trail_data[note_played]  # Rimuovi la scia quando il tasto è rilasciato
 
             
             
@@ -259,6 +292,7 @@ class Gioco(cevent.CEvent):
                     note_played = f'{note}-{self.ottava + 1}'
                     if note_played in self.keydown_event:
                         self.keydown_event.remove(note_played)  # Rimuovi l'illuminazione al rilascio del mouse
+                        del self.trail_data[note_played]  # Rimuovi la scia quando il tasto è rilasciato
 
                 
             
@@ -268,6 +302,7 @@ class Gioco(cevent.CEvent):
                         note_played = f'{note}-{self.ottava}'
                     if note_played in self.keydown_event:
                         self.keydown_event.remove(note_played)  # Rimuovi l'illuminazione al rilascio del mouse
+                        del self.trail_data[note_played]  # Rimuovi la scia quando il tasto è rilasciato
 
             
         
@@ -277,6 +312,7 @@ class Gioco(cevent.CEvent):
                         note_played = f'{note}-{self.ottava + 1}'
                     if note_played in self.keydown_event:
                         self.keydown_event.remove(note_played)  # Rimuovi l'illuminazione al rilascio del mouse
+                        del self.trail_data[note_played]  # Rimuovi la scia quando il tasto è rilasciato
 
         if event.type == pygame.MOUSEMOTION and self.mouse_pressed:
             # Gestire il movimento del mouse mentre è premuto
