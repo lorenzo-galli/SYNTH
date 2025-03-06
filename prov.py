@@ -387,7 +387,7 @@ class Gioco(cevent.CEvent):
 
         if event.type == pygame.MOUSEMOTION and self.mouse_pressed:
             mouse_pos = event.pos
-            # (Existing mouse motion handling for keys would go here)
+            # (Existing mouse motion handling for keys would go here) daje
 
     def draw(self):
         """ Disegna la schermata di gioco """
