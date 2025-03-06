@@ -4,7 +4,7 @@ import cevent
 import time
 import random
 
-# Definiamo alcune costanti per l'interfaccia grafica
+# Definiamo alcune costanti per l'interfaccia grafica e il gioco
 WIDTH, HEIGHT = 1280, 800
 BUTTON_RADIUS = 20
 FONT_SIZE1 = 30
